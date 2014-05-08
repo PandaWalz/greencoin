@@ -2,6 +2,7 @@ src/*.exe
 src/greencoin
 src/greencoind
 src/test_greencoin
+src/tags
 .*.swp
 *.*~*
 *.bak
@@ -31,4 +32,12 @@ qrc_*.cpp
 .DS_Store
 build
 
-!src/leveldb-*/Makefile
+!src/leveldb*/Makefile
+
+.qmake.stash
+Info.plist
+greencoin-Qt.xcodeproj
+dist/
+*.dmg
+*.sublime-project
+*.sublime-workspace
