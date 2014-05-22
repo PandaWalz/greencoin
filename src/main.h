@@ -88,12 +88,9 @@ extern CScript GREENCOIN_SCRIPT;
 
 extern CCriticalSection cs_main;
 extern std::map<uint256, CBlockIndex*> mapBlockIndex;
-extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
 extern std::set<CBlockIndex*, CBlockIndexWorkComparator> setBlockIndexValid;
 extern uint256 hashGenesisBlock;
 extern CBlockIndex* pindexGenesisBlock;
-extern unsigned int nStakeMinAge;
-extern unsigned int nStakeMaxAge;
 extern int nBestHeight;
 extern uint256 nBestChainWork;
 extern uint256 nBestInvalidWork;
@@ -102,7 +99,6 @@ extern CBlockIndex* pindexBest;
 extern unsigned int nTransactionsUpdated;
 extern uint64 nLastBlockTx;
 extern uint64 nLastBlockSize;
-extern int64 nLastCoinStakeSearchInterval;
 extern const std::string strMessageMagic;
 extern double dHashesPerSec;
 extern int64 nHPSTimerStart;
@@ -116,6 +112,12 @@ extern bool fBenchmark;
 extern int nScriptCheckThreads;
 extern bool fTxIndex;
 extern unsigned int nCoinCacheSize;
+
+// Reddcoin PoSV
+extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
+extern unsigned int nStakeMinAge;
+extern unsigned int nStakeMaxAge;
+extern int64 nLastCoinStakeSearchInterval;
 
 // Settings
 extern int64 nTransactionFee;
@@ -186,11 +188,8 @@ void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
-int64 GetProofOfWorkReward(int64 nFees);
-int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees);
 /** Calculate the minimum amount of work a received block needs, without knowing its direct parent */
 unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
-unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
 /** Get the number of active peers */
 int GetNumBlocksOfPeers();
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
@@ -213,7 +212,10 @@ CBlockIndex * InsertBlockIndex(uint256 hash);
 bool VerifySignature(const CCoins& txFrom, const CTransaction& txTo, unsigned int nIn, unsigned int flags, int nHashType);
 /** Abort with a message */
 bool AbortNode(const std::string &msg);
-/** PoS miner */
+
+// Reddcoin PoSV
+int64 GetProofOfStakeReward(int64 nCoinAge, int64 nFees);
+unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
 void StakeMiner(CWallet *pwallet);
 
 
@@ -501,12 +503,12 @@ class CTransaction
 public:
     static int64 nMinTxFee;
     static int64 nMinRelayTxFee;
-    static const int CURRENT_VERSION=1;
+    static const int CURRENT_VERSION=2;
     int nVersion;
-    unsigned int nTime;
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;
     unsigned int nLockTime;
+    unsigned int nTime;
 
     CTransaction()
     {
@@ -517,19 +519,19 @@ public:
     (
         READWRITE(this->nVersion);
         nVersion = this->nVersion;
-        READWRITE(nTime);
         READWRITE(vin);
         READWRITE(vout);
         READWRITE(nLockTime);
+        READWRITE(nTime); // ppcoin
     )
 
     void SetNull()
     {
         nVersion = CTransaction::CURRENT_VERSION;
-        nTime = GetAdjustedTime();
         vin.clear();
         vout.clear();
         nLockTime = 0;
+        nTime = GetAdjustedTime(); // ppcoin
     }
 
     bool IsNull() const
@@ -593,9 +595,9 @@ public:
         return (vin.size() == 1 && vin[0].prevout.IsNull());
     }
 
+    // ppcoin: the coin stake transaction is marked with the first output empty
     bool IsCoinStake() const
     {
-        // ppcoin: the coin stake transaction is marked with the first output empty
         return (vin.size() > 0 && (!vin[0].prevout.IsNull()) && vout.size() >= 2 && vout[0].IsEmpty());
     }
 
@@ -666,10 +668,10 @@ void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCach
     friend bool operator==(const CTransaction& a, const CTransaction& b)
     {
         return (a.nVersion  == b.nVersion &&
-                a.nTime     == b.nTime &&
                 a.vin       == b.vin &&
                 a.vout      == b.vout &&
-                a.nLockTime == b.nLockTime);
+                a.nLockTime == b.nLockTime &&
+                a.nTime     == b.nTime);
     }
 
     friend bool operator!=(const CTransaction& a, const CTransaction& b)
@@ -1433,15 +1435,15 @@ public:
     (
         READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
-        READWRITE(vchBlockSig);
+        READWRITE(vchBlockSig); // ppcoin
     )
 
     void SetNull()
     {
         CBlockHeader::SetNull();
         vtx.clear();
-        vchBlockSig.clear();
         vMerkleTree.clear();
+        vchBlockSig.clear(); // ppcoin
     }
 
     uint256 GetPoWHash() const
@@ -1765,7 +1767,8 @@ public:
     int64 nMint;
     int64 nMoneySupply;
 
-    unsigned int nFlags;  // ppcoin: block index flags
+    // ppcoin: block index flags
+    unsigned int nFlags;
     enum
     {
         BLOCK_PROOF_OF_STAKE = (1 << 0), // is proof-of-stake block
@@ -1776,11 +1779,10 @@ public:
     uint64 nStakeModifier; // hash modifier for proof-of-stake
     unsigned int nStakeModifierChecksum; // checksum of index; in-memeory only
 
-    // proof-of-stake specific fields
+    // more proof-of-stake specific fields
+    uint256 hashProof;
     COutPoint prevoutStake;
     unsigned int nStakeTime;
-
-    uint256 hashProof;
 
     // Which # file this block is stored in (blk?????.dat)
     int nFile;
@@ -1818,16 +1820,6 @@ public:
         pprev = NULL;
         pnext = NULL;
         nHeight = 0;
-
-        nMint = 0;
-        nMoneySupply = 0;
-        nFlags = 0;
-        nStakeModifier = 0;
-        nStakeModifierChecksum = 0;
-        hashProof = 0;
-        prevoutStake.SetNull();
-        nStakeTime = 0;
-
         nFile = 0;
         nDataPos = 0;
         nUndoPos = 0;
@@ -1841,15 +1833,39 @@ public:
         nTime          = 0;
         nBits          = 0;
         nNonce         = 0;
+
+        // ppcoin
+        nMint = 0;
+        nMoneySupply = 0;
+        nFlags = 0;
+        nStakeModifier = 0;
+        nStakeModifierChecksum = 0;
+        hashProof = 0;
+        prevoutStake.SetNull();
+        nStakeTime = 0;
     }
 
-    CBlockIndex(CBlockHeader& block)
+    CBlockIndex(CBlock& block)
     {
         phashBlock = NULL;
         pprev = NULL;
         pnext = NULL;
         nHeight = 0;
+        nFile = 0;
+        nDataPos = 0;
+        nUndoPos = 0;
+        nChainWork = 0;
+        nTx = 0;
+        nChainTx = 0;
+        nStatus = 0;
 
+        nVersion       = block.nVersion;
+        hashMerkleRoot = block.hashMerkleRoot;
+        nTime          = block.nTime;
+        nBits          = block.nBits;
+        nNonce         = block.nNonce;
+
+        // ppcoin
         nMint = 0;
         nMoneySupply = 0;
         nFlags = 0;
@@ -1867,20 +1883,6 @@ public:
             prevoutStake.SetNull();
             nStakeTime = 0;
         }
-
-        nFile = 0;
-        nDataPos = 0;
-        nUndoPos = 0;
-        nChainWork = 0;
-        nTx = 0;
-        nChainTx = 0;
-        nStatus = 0;
-
-        nVersion       = block.nVersion;
-        hashMerkleRoot = block.hashMerkleRoot;
-        nTime          = block.nTime;
-        nBits          = block.nBits;
-        nNonce         = block.nNonce;
     }
 	
     IMPLEMENT_SERIALIZE
@@ -1985,7 +1987,7 @@ public:
     static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart,
                                 unsigned int nRequired, unsigned int nToCheck);
 
-
+    // ppcoin
     bool IsProofOfWork() const
     {
         return !(nFlags & BLOCK_PROOF_OF_STAKE);
@@ -2088,18 +2090,6 @@ public:
             READWRITE(VARINT(nVersion));
 
         READWRITE(VARINT(nHeight));
-
-        READWRITE(VARINT(nMint));
-        READWRITE(VARINT(nMoneySupply));
-        READWRITE(VARINT(nFlags));
-        READWRITE(VARINT(nStakeModifier));
-        if (IsProofOfStake())
-        {
-            READWRITE(VARINT(prevoutStake));
-            READWRITE(VARINT(nStakeTime));
-        }
-        READWRITE(VARINT(hashProof));
-
         READWRITE(VARINT(nStatus));
         READWRITE(VARINT(nTx));
 
@@ -2110,7 +2100,19 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-		ReadWriteAuxPow(s, auxpow, nType, this->nVersion, ser_action);
+
+        // ppcoin
+        READWRITE(VARINT(nMint));
+        READWRITE(VARINT(nMoneySupply));
+        READWRITE(VARINT(nFlags));
+        READWRITE(VARINT(nStakeModifier));
+        READWRITE(VARINT(hashProof));
+        if (IsProofOfStake())
+        {
+            READWRITE(VARINT(prevoutStake));
+            READWRITE(VARINT(nStakeTime));
+        }
+>>>>>>> cb9532a... Clean up main.h a bit
     )
 
     uint256 CalcBlockHash() const
