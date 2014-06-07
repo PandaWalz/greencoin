@@ -1,0 +1,74 @@
+2014-05-01 01:19:50 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2014-05-01 01:19:50 GreenCoin version v0.8.6.2-unk-beta ()
+2014-05-01 01:19:50 Using OpenSSL version OpenSSL 1.0.1 14 Mar 2012
+2014-05-01 01:19:50 Default data directory .
+2014-05-01 01:19:50 Using data directory ./testnet3
+2014-05-01 01:19:50 Using at most 125 connections (1024 file descriptors available)
+2014-05-01 01:19:50 Using 4 threads for script verification
+2014-05-01 01:19:50 init message: Verifying wallet...
+2014-05-01 01:19:50 dbenv.open LogDir=./testnet3/database ErrorFile=./testnet3/db.log
+2014-05-01 01:19:50 ERROR: CDB() : error DB_RUNRECOVERY: Fatal error, run database recovery (-30973) opening database environment
+2014-05-01 01:19:50 Moved old ./testnet3/database to ./testnet3/database.1398907190.bak. Retrying.
+2014-05-01 01:19:50 dbenv.open LogDir=./testnet3/database ErrorFile=./testnet3/db.log
+2014-05-01 01:19:50 ERROR: CDB() : error DB_RUNRECOVERY: Fatal error, run database recovery (-30973) opening database environment
+2014-05-01 01:19:50 Error: Error initializing wallet database environment ./testnet3!
+2014-05-01 01:19:50 Shutdown : In progress...
+2014-05-01 01:19:50 StopNode()
+2014-05-01 01:19:50 Flushed 0 addresses to peers.dat  10ms
+2014-05-01 01:19:50 Shutdown : done
+2014-05-01 01:20:38 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2014-05-01 01:20:38 GreenCoin version v0.8.6.2-unk-beta ()
+2014-05-01 01:20:38 Using OpenSSL version OpenSSL 1.0.1 14 Mar 2012
+2014-05-01 01:20:38 Default data directory .
+2014-05-01 01:20:38 Using data directory ./testnet3
+2014-05-01 01:20:38 Using at most 125 connections (1024 file descriptors available)
+2014-05-01 01:20:38 Using 4 threads for script verification
+2014-05-01 01:20:38 init message: Verifying wallet...
+2014-05-01 01:20:38 dbenv.open LogDir=./testnet3/database ErrorFile=./testnet3/db.log
+2014-05-01 01:20:38 ERROR: CDB() : error DB_RUNRECOVERY: Fatal error, run database recovery (-30973) opening database environment
+2014-05-01 01:20:38 Moved old ./testnet3/database to ./testnet3/database.1398907238.bak. Retrying.
+2014-05-01 01:20:38 dbenv.open LogDir=./testnet3/database ErrorFile=./testnet3/db.log
+2014-05-01 01:20:38 ERROR: CDB() : error DB_RUNRECOVERY: Fatal error, run database recovery (-30973) opening database environment
+2014-05-01 01:20:38 Error: Error initializing wallet database environment ./testnet3!
+2014-05-01 01:20:38 Shutdown : In progress...
+2014-05-01 01:20:38 StopNode()
+2014-05-01 01:20:38 Flushed 0 addresses to peers.dat  7ms
+2014-05-01 01:20:38 Shutdown : done
