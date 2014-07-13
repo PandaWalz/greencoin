@@ -1123,7 +1123,7 @@ unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBl
     if (pindexLast == NULL)
         return nProofOfWorkLimit;
 
-    retrn nProofOfWorkLimit;
+    return nProofOfWorkLimit;
 }
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits)
@@ -1946,7 +1946,7 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
      if (fTestNet)
          return 0; // Test network is only running merged capable clients
      else
-         return 0; // 100k
+         return 1; // 100k
  }
  
  int GetOurChainID()
