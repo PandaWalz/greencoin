@@ -1951,7 +1951,7 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
  
  int GetOurChainID()
  {
-     return 0x0000;
+     return 0x0055;
  }
  
  bool CBlockHeader::CheckProofOfWork(int nHeight) const
@@ -4575,7 +4575,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
             return error("AUX POW parent hash %s is not under target %s", auxpow->GetParentBlockHash().GetHex().c_str(), hashTarget.GetHex().c_str());
 
         //// debug print
-        printf("GreenCoinMiner:\n");
+        printf("TacoCoinMiner:\n");
         printf("AUX proof-of-work found  \n     our hash: %s   \n  parent hash: %s  \n       target: %s\n",
                hash.GetHex().c_str(),
                auxpow->GetParentBlockHash().GetHex().c_str(),
