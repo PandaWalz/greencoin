@@ -207,6 +207,7 @@ static const CRPCCommand vRPCCommands[] =
     { "addnode",                &addnode,                true,      true,       false },
     { "getaddednodeinfo",       &getaddednodeinfo,       true,      true,       false },
     { "getdifficulty",          &getdifficulty,          true,      false,      false },
+    { "getcarbonoffset",	&getcarbonoffset,	 true,      false,      false },
     { "getnetworkhashps",       &getnetworkhashps,       true,      false,      false },
     { "getgenerate",            &getgenerate,            true,      false,      false },
     { "setgenerate",            &setgenerate,            true,      false,      true },

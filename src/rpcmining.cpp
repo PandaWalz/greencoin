@@ -7,9 +7,155 @@
 #include "db.h"
 #include "init.h"
 #include "bitcoinrpc.h"
+#include "net.h"
 
 using namespace json_spirit;
 using namespace std;
+//////////////////////////////////////////////////////////////
+
+
+bool GetCarbonInfo(CNetAddr& ipRet);
+
+extern int nHeight;
+
+/////////////////////////////////////////////////////////////
+
+bool GetCarbonInfo2(const CService& addrConnect, const char* pszGet, const char* pszKeyword, CNetAddr& ipRet)
+{
+    SOCKET hSocket;
+    if (!ConnectSocket(addrConnect, hSocket))
+        return error("GetCarbonInfo() : connection to %s failed", addrConnect.ToString().c_str());
+
+    send(hSocket, pszGet, strlen(pszGet), MSG_NOSIGNAL);
+
+    string strLine;
+    while (RecvLine(hSocket, strLine))
+    {
+        if (strLine.empty()) // HTTP response is separated from headers by blank line
+        {
+            loop
+            {
+                if (!RecvLine(hSocket, strLine))
+                {
+                    closesocket(hSocket);
+                    return false;
+                }
+                if (pszKeyword == NULL)
+                    break;
+                if (strLine.find(pszKeyword) != string::npos)
+                {
+                    strLine = strLine.substr(strLine.find(pszKeyword) + strlen(pszKeyword));
+                    break;
+                }
+            }
+            closesocket(hSocket);
+            if (strLine.find("<") != string::npos)
+                strLine = strLine.substr(0, strLine.find("<"));
+            strLine = strLine.substr(strspn(strLine.c_str(), " \t\n\r"));
+            while (strLine.size() > 0 && isspace(strLine[strLine.size()-1]))
+                strLine.resize(strLine.size()-1);
+            CService addr(strLine,0,true);
+            printf("GetCarbonInfo() received [%s] %s\n", strLine.c_str(), addr.ToString().c_str());
+            if (!addr.IsValid() || !addr.IsRoutable())
+                return false;
+            ipRet.SetIP(addr);
+            return true;
+        }
+    }
+    closesocket(hSocket);
+    return error("GetCarbonInfo() : connection closed");
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+bool GetCarbonInfo(CNetAddr& ipRet)
+{
+    CService addrConnect;
+    const char* pszGet;
+    const char* pszKeyword;
+
+    for (int nLookup = 0; nLookup <= 1; nLookup++)
+    for (int nHost = 1; nHost <= 2; nHost++)
+    {
+        if (nHost == 1)
+        {
+            addrConnect = CService("50.63.202.28", 80); // IP of grcoin
+
+            if (nLookup == 1)
+            {
+                CService addrIP("grcoin.com", 80, true);
+                if (addrIP.IsValid())
+                    addrConnect = addrIP;
+            }
+
+            pszGet = "GET / HTTP/1.1\r\n"
+                     "Host: checkip.dyndns.org\r\n"
+                     "User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)\r\n"
+                     "Connection: close\r\n"
+                     "\r\n";
+
+            pszKeyword = "Address:";
+        }
+        else if (nHost == 2)
+        {
+            pszKeyword = NULL; // Returns just IP address
+        }
+
+        if (GetCarbonInfo2(addrConnect, pszGet, pszKeyword, ipRet))
+            return true;
+    }
+
+    return false;
+}
+///////////////////////////////////////////////////////////////////////////////////////
+Value getcarbonoffset(const Array& params, bool fHelp)
+{
+ int64 TotalCoins;
+ double kgC02, mgC02, youroffset, yourimmature, gasoline, coal, tankers, turbines, energy, electricity, railcars, bulbs, oil, propane, powerplants, seedlings, forests, preservedforests;
+ 
+ 
+ TotalCoins = (int)nBestHeight * 2000;
+ kgC02 = 580000;
+ mgC02 = 17.7;
+ youroffset = (mgC02 * (int)(pwalletMain->GetBalance()));
+ yourimmature = (mgC02 * (int)(pwalletMain->GetImmatureBalance()));
+
+ gasoline = kgC02 * 0.112533;
+ coal = kgC02 * 1.074133;
+ tankers = kgC02 * 0.000013;
+ turbines = kgC02 * 0.00000027;
+ energy = kgC02 * 0.00009120;
+ electricity = kgC02 * 0.00013760;
+ railcars = kgC02 * 0.00000533;
+ bulbs = kgC02 * 0.02613333;
+ oil = kgC02 * 0.00234667;
+ propane = kgC02 * 0.04165333;
+ powerplants = kgC02 * 0.00000000034482758620690;
+ seedlings = kgC02 * 0.02565333;
+ forests = kgC02 * 0.00080000;
+ preservedforests = kgC02 * 0.000007;
+
+ Object obj;
+
+     obj.push_back(Pair("Personal C02 Offset", youroffset));
+     obj.push_back(Pair("Personal C02 Offset - Immature", yourimmature));
+     obj.push_back(Pair("GreenCoins Available", TotalCoins));
+     obj.push_back(Pair("GreenCoin Network C02 Offset - kg", kgC02));
+     obj.push_back(Pair("Gallons of Gasoline", gasoline));
+     obj.push_back(Pair("Pounds of Coal Burned", coal));
+     obj.push_back(Pair("Tanker Trucks' of Gasoline", tankers));
+     obj.push_back(Pair("Wind Turbines Installed", turbines));
+     obj.push_back(Pair("Annual Home Energy Use", energy));
+     obj.push_back(Pair("Annual Home Electricity Use", electricity));
+     obj.push_back(Pair("Railcars of Coal Burned", railcars));
+     obj.push_back(Pair("Incandascent Bulbs switched to CFLs", bulbs));
+     obj.push_back(Pair("Consumed Barrels of Oil", oil));
+     obj.push_back(Pair("Propane Cylinders for Home Barbeques", propane));
+     obj.push_back(Pair("Coal Fired Power Plants", powerplants));
+     obj.push_back(Pair("Equivalent Tree Seedling Carbon Sequestration", seedlings));
+     obj.push_back(Pair("Equivalent Acres of Forests Carbon Sequestration", forests));
+     obj.push_back(Pair("Equivalent Acres of Preserved US Forests", preservedforests));
+     return obj;
+ }
+ 
 
 // Return average network hashes per second based on the last 'lookup' blocks,
 // or from the last difficulty change if 'lookup' is nonpositive.
