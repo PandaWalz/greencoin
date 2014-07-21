@@ -108,6 +108,11 @@ bool GetCarbonInfo(CNetAddr& ipRet)
 ///////////////////////////////////////////////////////////////////////////////////////
 Value getcarbonoffset(const Array& params, bool fHelp)
 {
+
+	if (fHelp || params.size() !=0 )
+        throw runtime_error(
+            "getcarbonoffset");
+
  int64 TotalCoins;
  double kgC02, mgC02, youroffset, yourimmature, gasoline, coal, tankers, turbines, energy, electricity, railcars, bulbs, oil, propane, powerplants, seedlings, forests, preservedforests;
  
