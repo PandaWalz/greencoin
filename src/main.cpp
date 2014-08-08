@@ -1951,7 +1951,7 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
  
  int GetOurChainID()
  {
-     return 0x0015;
+     return 0x0019;
  }
  
  bool CBlockHeader::CheckProofOfWork(int nHeight) const
