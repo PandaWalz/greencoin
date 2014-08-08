@@ -1942,13 +1942,12 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
  //   each merged minable scrypt_1024_1_1_256 coin should have a different one
  //   (if two have the same ID, they can't be merge mined together)
  int GetAuxPowStartBlock()
- {
-     if (fTestNet)
-         return 0; // Test network is only running merged capable clients
-     else
-         return 1; // 100k
- }
- 
+{
+    if (fTestNet)
+        return 0; // Test network is only running merged capable clients
+    else
+        return 100000; // 100k
+}
  int GetOurChainID()
  {
      return 0x0019;
