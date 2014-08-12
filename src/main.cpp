@@ -1946,7 +1946,7 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
     if (fTestNet)
         return 0; // Test network is only running merged capable clients
     else
-        return 100000; // 100k
+        return 125000; // 125k
 }
  int GetOurChainID()
  {
