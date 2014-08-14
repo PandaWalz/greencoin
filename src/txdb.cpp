@@ -222,8 +222,6 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
 				 
 				// Construct immutable parts of block index object
                 CBlockIndex* pindexNew = InsertBlockIndex(hash);
-                assert(diskindex.CalcBlockHash() == *pindexNew->phashBlock); // paranoia check
-				
 
           
                 pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
