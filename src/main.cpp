@@ -1921,7 +1921,7 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
         const CBlockIndex* pindex = pindexBest;
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-            if (pindex->nVersion > CBlock::CURRENT_VERSION)
+            if (pindex->nVersion > CBlock::CURRENT_VERSION && !IsAuxPowVersion(pindex->nVersion))
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
@@ -2010,7 +2010,14 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
  {
      return 0x0019;
  }
- 
+
+bool IsAuxPowVersion(int nVersion)
+{
+    int nBareAuxPowVersion = CBlockHeader::CURRENT_VERSION | (GetOurChainID() * BLOCK_VERSION_CHAIN_START);
+    return (nVersion == (nBareAuxPowVersion | BLOCK_VERSION_AUXPOW) ||
+        nVersion == (nBareAuxPowVersion & ~BLOCK_VERSION_AUXPOW));
+}
+
  bool CBlockHeader::CheckProofOfWork(int nHeight) const
  {
      if (nHeight >= GetAuxPowStartBlock())
