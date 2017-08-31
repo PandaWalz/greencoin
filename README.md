@@ -3,13 +3,13 @@ GreenCoin integration/staging tree
 
 http://www.grcoin.com
 
-Copyright (c) 2009-2014 Bitcoin Developers
-Copyright (c) 2011-2014 Litecoin Developers
+Copyright (c) 2009-2017 Bitcoin Developers
+Copyright (c) 2011-2017 Litecoin Developers
 
 What is GreenCoin?
 ----------------
 
-GreenCoin is a lite version of Bitcoin using scrypt as a proof-of-work algorithm.
+GreenCoin is a Carbon Free Cryptocurrency utilizing a proof-of-stake (PoS) algorithm.
  - 63 second block targets
  - subsidy halves in 2.5 Million blocks (~5 years)
  - 10 Billion total coins
