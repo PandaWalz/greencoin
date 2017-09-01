@@ -3,24 +3,17 @@ GreenCoin integration/staging tree
 
 New Roadmap:
 // Work to eliminate Main.cpp and move to modules - move fees to own file, coin controls, remove antiquated miner controls, etc.
-
 // Specific Functions/Variables to move / roadmap
-
 // nTransactionFee
-
 // Mempool(Check Files for Mempool traces)
-
 // Alerts (Move to Alerts?)
-
 // Charity Address Function - Allow for Stakers to donate higher %'s of staked coins
-
 // Merkle (Assign as set values? No need to clutter here)
-
 // PoW Leftovers - Remove Traces of PoW left over from PoS that are no longer used.
-
 // GreenCoinMiner - Remove PoW pieces (Leave chain design aspects for coin control)
-
 // AmountCompression - Move to own module
+
+// ADD TXN FEE CONTROL TO CLIENT.
 
 http://www.grcoin.com
 
