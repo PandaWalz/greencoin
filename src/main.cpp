@@ -3,6 +3,17 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+// Work to eliminate Main.cpp and move to modules - move fees to own file, coin controls, remove antiquated miner controls, etc.
+// Specific Functions/Variables to move / roadmap
+// nTransactionFee
+// Mempool(Check Files for Mempool traces)
+// Alerts (Move to Alerts?)
+// Charity Address Function - Allow for Stakers to donate higher %'s of staked coins
+// Merkle (Assign as set values? No need to clutter here)
+// PoW Leftovers - Remove Traces of PoW left over from PoS that are no longer used.
+// GreenCoinMiner - Remove PoW pieces (Leave chain design aspects for coin control)
+// AmountCompression - Move to own module
+
 #include "alert.h"
 #include "checkpoints.h"
 #include "db.h"
@@ -50,6 +61,7 @@ bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
 
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
+// Investigate GRE Fees
 int64 CTransaction::nMinTxFee = 100000;
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
 int64 CTransaction::nMinRelayTxFee = 100000;
@@ -71,7 +83,8 @@ const string strMessageMagic = "GreenCoin Signed Message:\n";
 double dHashesPerSec = 0.0;
 int64 nHPSTimerStart = 0;
 
-// Settings
+// Settings - Revisit for TXN Fee Calculation - move to a file, fee.cpp in the future for complicated fee calculation.
+// See Litecoin/Bitcoin fee files for help here.
 int64 nTransactionFee = 0;
 int64 nMinimumInputValue = DUST_HARD_LIMIT;
 
